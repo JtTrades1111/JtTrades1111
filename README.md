@@ -19,6 +19,14 @@ Then open the URL Vite prints (usually http://localhost:5173).
 
 Stack: React + Vite, Tailwind CSS, Recharts, PapaParse.
 
+### Try it with sample data
+
+The `samples/` folder has fictional Discover/USAA CSVs and a ready-made export.
+Fastest path: click **Import data** in the top bar and pick
+`samples/sample-data.json`. Or click **Import CSV** and load
+`samples/discover.csv` and `samples/usaa.csv` to exercise the importer. See
+`samples/README.md` for details.
+
 ---
 
 ## The core idea: NET POSITION, not raw balance
