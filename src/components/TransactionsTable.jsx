@@ -85,12 +85,12 @@ export default function TransactionsTable() {
       </div>
 
       <div className="max-h-[28rem] overflow-auto rounded-lg border border-ink-600/60">
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[600px] text-left text-sm">
           <thead className="sticky top-0 bg-ink-700 text-xs uppercase tracking-wide text-slate-400">
             <tr>
               <Th onClick={() => toggleSort('date')}>Date{arrow('date')}</Th>
               <Th onClick={() => toggleSort('description')}>Description{arrow('description')}</Th>
-              <th className="px-3 py-2 font-medium">Account</th>
+              <th className="hidden px-3 py-2 font-medium sm:table-cell">Account</th>
               <th className="px-3 py-2 font-medium">Category</th>
               <Th onClick={() => toggleSort('amount')} className="text-right">
                 Amount{arrow('amount')}
@@ -112,7 +112,9 @@ export default function TransactionsTable() {
                       </span>
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2 text-slate-400">{acct?.name || '—'}</td>
+                  <td className="hidden whitespace-nowrap px-3 py-2 text-slate-400 sm:table-cell">
+                    {acct?.name || '—'}
+                  </td>
                   <td className="px-3 py-2">
                     <select
                       className="rounded-md border border-transparent bg-ink-700/0 px-1.5 py-1 text-xs hover:border-ink-500 focus:border-accent focus:outline-none"

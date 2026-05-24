@@ -34,7 +34,7 @@ export default function App() {
       {!hasData ? (
         <EmptyState onImport={() => setShowImport(true)} />
       ) : (
-        <main className="mx-auto max-w-7xl space-y-5 px-5 py-6">
+        <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-5 sm:py-6">
           <KpiCards />
           <GoalProgress />
           <SpendingSection month={month} months={months} onMonthChange={setMonth} />
