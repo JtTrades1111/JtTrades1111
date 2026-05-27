@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import Modal from './Modal.jsx';
 import { useStore } from '../store/StoreContext.jsx';
 import { buildDrafts, detectFormat, parseCsvText } from '../lib/csv.js';
+import { isPdfFile, parseStatementPdf } from '../lib/pdf.js';
 
 // Signature of a header set, used to remember mappings for unknown formats.
 function headerSignature(headers) {
@@ -41,10 +42,14 @@ export default function ImportModal({ open, onClose }) {
     setError('');
     if (!file) return;
     try {
-      const text = await file.text();
-      const { headers, rows } = parseCsvText(text);
+      const pdf = isPdfFile(file);
+      const { headers, rows } = pdf
+        ? await parseStatementPdf(file)
+        : parseCsvText(await file.text());
       if (!rows.length) {
-        setError('That file has headers but no data rows.');
+        setError(
+          pdf ? 'No transactions found in that PDF.' : 'That file has headers but no data rows.'
+        );
         return;
       }
       const fmt = detectFormat(headers);
@@ -160,7 +165,7 @@ export default function ImportModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={close} title="Import CSV" wide={stage === 'mapping'}>
+    <Modal open={open} onClose={close} title="Import statement" wide={stage === 'mapping'}>
       {stage === 'drop' && (
         <div>
           <label
@@ -170,15 +175,15 @@ export default function ImportModal({ open, onClose }) {
           >
             <div className="text-4xl">📄</div>
             <div className="text-sm font-medium text-slate-200">
-              Drag a CSV here, or click to choose a file
+              Drag a CSV or PDF here, or click to choose a file
             </div>
             <div className="text-xs text-slate-400">
-              Discover and USAA exports are detected automatically. Other files
-              get a column-mapping step.
+              Discover statement PDFs and Discover/USAA CSV exports are detected
+              automatically. Other CSVs get a column-mapping step.
             </div>
             <input
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,.pdf,application/pdf"
               className="hidden"
               onChange={(e) => handleFile(e.target.files?.[0])}
             />

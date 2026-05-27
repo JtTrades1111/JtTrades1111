@@ -86,7 +86,7 @@ export default function TopBar({ onImport, onSettings }) {
             className="btn-primary px-2.5 py-1.5 text-xs sm:px-3.5 sm:py-2 sm:text-sm"
             onClick={onImport}
           >
-            Import CSV
+            Import statement
           </button>
         </div>
       </div>

@@ -108,6 +108,13 @@ future-value-of-an-annuity formula, commented).
 3. The file has columns: `Trans. Date, Post Date, Description, Amount, Category`.
    - Positive `Amount` = purchases (money you owe); negative = payments/credits.
 
+**Or just drop in the monthly statement PDF.** Discover statement PDFs are
+parsed directly — the importer reconstructs each transaction (date, merchant,
+Discover category, amount), infers the year from the statement period, and
+treats it exactly like the CSV. CSV is still the more robust path if Discover
+ever changes their statement layout. (PDF parsing lives in `src/lib/pdf.js` and
+only supports Discover statements; other banks should use their CSV export.)
+
 ### USAA (checking / savings)
 1. Log in at usaa.com → select the account → **Export Transactions**.
 2. Choose **CSV** and a date range, download.
@@ -118,8 +125,8 @@ future-value-of-an-annuity formula, commented).
 > match, the app shows a **column-mapping screen** (below).
 
 ### Where to drop them
-Click **Import CSV** in the top bar (or drag the file onto the drop zone).
-Discover and USAA files are detected automatically. Re-importing the same file
+Click **Import statement** in the top bar (or drag the file onto the drop zone).
+Discover statement PDFs and Discover/USAA CSV files are detected automatically. Re-importing the same file
 is safe — duplicates (same account + date + description + amount) are skipped
 and the count is reported.
 

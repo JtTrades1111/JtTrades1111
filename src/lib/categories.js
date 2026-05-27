@@ -52,7 +52,7 @@ const ISSUER_CATEGORY_MAP = {
   'supermarkets': 'Groceries',
   'gasoline': 'Transport',
   'travel': 'Transport',
-  'travel/ entertainment': 'Entertainment',
+  'travel/entertainment': 'Entertainment',
   'merchandise': 'Shopping',
   'department stores': 'Shopping',
   'services': 'Other',
