@@ -1,5 +1,6 @@
 import { NON_SPEND_CATEGORIES } from '../lib/categories.js';
 import { computeGoal } from '../lib/goal.js';
+import { computeInvestmentGoal, investmentProjectionSeries } from '../lib/investment.js';
 import { daysBetween, isoWeekKey, monthKey, todayISO } from '../lib/format.js';
 
 // ---------------------------------------------------------------------------
@@ -78,6 +79,21 @@ export function goalStats(state, today = todayISO()) {
     currentNet: currentNet(state),
     today,
   });
+}
+
+// Long-term investment goal stats + projection, tracked against total net
+// worth (currentNet, which already includes manual investments).
+export function investmentGoalStats(state, today = todayISO()) {
+  const s = state.settings;
+  const args = {
+    current: currentNet(state),
+    target: s.investTarget,
+    targetDate: s.investTargetDate,
+    annualReturnPct: s.investReturn,
+    monthlyContribution: s.investMonthly,
+    today,
+  };
+  return { ...computeInvestmentGoal(args), series: investmentProjectionSeries(args) };
 }
 
 // A transaction is real spending when it reduced net position (signedForNet<0)

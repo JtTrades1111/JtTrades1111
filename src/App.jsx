@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import TopBar from './components/TopBar.jsx';
 import KpiCards from './components/KpiCards.jsx';
 import GoalProgress from './components/GoalProgress.jsx';
+import InvestmentGoal from './components/InvestmentGoal.jsx';
 import SpendingSection from './components/SpendingSection.jsx';
 import AccountsPanel from './components/AccountsPanel.jsx';
 import TransactionsTable from './components/TransactionsTable.jsx';
@@ -37,6 +38,7 @@ export default function App() {
         <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-5 sm:py-6">
           <KpiCards />
           <GoalProgress />
+          <InvestmentGoal />
           <SpendingSection month={month} months={months} onMonthChange={setMonth} />
           <AccountsPanel />
           <TransactionsTable />

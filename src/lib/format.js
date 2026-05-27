@@ -62,6 +62,23 @@ export function daysBetween(fromISO, toISODate) {
   return Math.round((b - a) / (1000 * 60 * 60 * 24));
 }
 
+// Whole + fractional months between two ISO dates (avg month = 30.4375 days).
+export function monthsBetween(fromISO, toISODate) {
+  return daysBetween(fromISO, toISODate) / 30.4375;
+}
+
+// Add N calendar months to an ISO date, clamping the day to the month length.
+export function addMonthsISO(iso, n) {
+  const d = parseISODate(iso);
+  if (!d) return iso;
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + n);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, lastDay));
+  return toISO(d);
+}
+
 // ISO week key like "2026-W21" used to bucket spending by week.
 export function isoWeekKey(iso) {
   const d = parseISODate(iso);

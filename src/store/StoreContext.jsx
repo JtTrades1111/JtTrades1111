@@ -27,6 +27,11 @@ export const initialState = {
     targetNet: 5000,
     targetDate: defaultTargetDate(),
     startDate: null, // null => earliest transaction date
+    // Long-term investment goal (compounding). Tracked against total net worth.
+    investTarget: 200000,
+    investTargetDate: defaultInvestDate(),
+    investReturn: 7, // expected annual return %, editable
+    investMonthly: 2500, // planned monthly contribution
   },
   ui: { lastImport: null },
 };
@@ -38,6 +43,12 @@ function defaultTargetDate() {
   const sept1 = new Date(year, 8, 1);
   if (now > sept1) year += 1;
   return `${year}-09-01`;
+}
+
+function defaultInvestDate() {
+  // Default long-term horizon: 5 years out.
+  const d = new Date();
+  return `${d.getFullYear() + 5}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
 // Build the effective rule list: user rules first (highest priority), then

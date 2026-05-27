@@ -81,6 +81,23 @@ The goal engine (`src/lib/goal.js`) computes:
 
 The pacing math is small and heavily commented — tweak it in `src/lib/goal.js`.
 
+### Long-term investment goal (compounding)
+
+Alongside the short-term summer goal, there's a separate **Investment Goal**
+section for a multi-year wealth target (e.g. $200,000). Unlike the summer goal
+(a straight line), this one models **compounding** — money already invested and
+future monthly contributions both earn returns. You set a target amount, a
+target date, an expected annual return (default 7%), and a planned monthly
+contribution; the app shows:
+
+- Your current net worth and how much of it is invested
+- Projected value at the target date (with growth)
+- Whether you're on track, and the **monthly contribution needed** to hit the target
+- A projection chart: balance-with-growth vs. contributions-only vs. target
+
+The future-value math lives in `src/lib/investment.js` (standard
+future-value-of-an-annuity formula, commented).
+
 ---
 
 ## Exporting CSVs from your banks

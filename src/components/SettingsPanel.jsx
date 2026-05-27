@@ -16,6 +16,12 @@ export default function SettingsPanel({ open, onClose }) {
   const [overrideStart, setOverrideStart] = useState(settings.startNet != null);
   const [startNet, setStartNet] = useState(settings.startNet != null ? settings.startNet : auto);
 
+  // Long-term investment goal fields.
+  const [investTarget, setInvestTarget] = useState(settings.investTarget);
+  const [investTargetDate, setInvestTargetDate] = useState(settings.investTargetDate);
+  const [investReturn, setInvestReturn] = useState(settings.investReturn);
+  const [investMonthly, setInvestMonthly] = useState(settings.investMonthly);
+
   const save = () => {
     dispatch({
       type: 'UPDATE_SETTINGS',
@@ -24,6 +30,10 @@ export default function SettingsPanel({ open, onClose }) {
         targetDate,
         startDate: startDate || null,
         startNet: overrideStart ? parseFloat(startNet) || 0 : null,
+        investTarget: parseFloat(investTarget) || 0,
+        investTargetDate,
+        investReturn: parseFloat(investReturn) || 0,
+        investMonthly: parseFloat(investMonthly) || 0,
       },
     });
     onClose();
@@ -64,6 +74,34 @@ export default function SettingsPanel({ open, onClose }) {
               <Money value={startNet} onChange={setStartNet} />
             </div>
           )}
+        </div>
+
+        {/* Long-term investment goal */}
+        <div className="space-y-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <h3 className="text-sm font-semibold text-emerald-300">Investment Goal (long-term)</h3>
+          <Row label="Target amount">
+            <Money value={investTarget} onChange={setInvestTarget} />
+          </Row>
+          <Row label="Target date">
+            <input
+              type="date"
+              className="input w-full"
+              value={investTargetDate}
+              onChange={(e) => setInvestTargetDate(e.target.value)}
+            />
+          </Row>
+          <Row label="Planned monthly contribution">
+            <Money value={investMonthly} onChange={setInvestMonthly} />
+          </Row>
+          <Row label="Expected annual return (%)" hint="Long-run stock market avg is ~7%.">
+            <input
+              type="number"
+              step="0.1"
+              className="input w-full"
+              value={investReturn}
+              onChange={(e) => setInvestReturn(e.target.value)}
+            />
+          </Row>
         </div>
 
         <div className="flex justify-between pt-2">

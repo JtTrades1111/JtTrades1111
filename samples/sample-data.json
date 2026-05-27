@@ -829,7 +829,11 @@
     "startNet": null,
     "targetNet": 12000,
     "targetDate": "2026-09-01",
-    "startDate": null
+    "startDate": null,
+    "investTarget": 200000,
+    "investTargetDate": "2031-05-01",
+    "investReturn": 7,
+    "investMonthly": 2500
   },
   "ui": {
     "lastImport": null
