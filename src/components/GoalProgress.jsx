@@ -103,7 +103,7 @@ export default function GoalProgress() {
             <Line
               type="monotone"
               dataKey="actual"
-              name="Net position"
+              name="Net balance"
               stroke="#818cf8"
               dot={false}
               strokeWidth={2.5}

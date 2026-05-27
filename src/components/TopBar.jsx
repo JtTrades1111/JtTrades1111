@@ -40,7 +40,7 @@ export default function TopBar({ onImport, onSettings }) {
             <h1 className="truncate text-sm font-semibold leading-tight text-slate-100 sm:text-base">
               Summer Budget Dashboard
             </h1>
-            <p className="hidden text-xs text-slate-400 sm:block">Tracking your end-of-summer net position</p>
+            <p className="hidden text-xs text-slate-400 sm:block">Tracking your end-of-summer net balance</p>
           </div>
 
           {/* Compact countdown, always visible (incl. mobile) */}

@@ -20,7 +20,7 @@ export default function KpiCards() {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <Kpi label="Net Position">
+      <Kpi label="Net Balance">
         <div className={`text-3xl font-bold ${net < 0 ? 'text-red-400' : 'text-slate-100'}`}>
           {formatMoney(net)}
         </div>

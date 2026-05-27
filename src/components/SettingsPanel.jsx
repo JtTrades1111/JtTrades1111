@@ -42,7 +42,7 @@ export default function SettingsPanel({ open, onClose }) {
   return (
     <Modal open={open} onClose={onClose} title="Goal Settings">
       <div className="space-y-4">
-        <Row label="Target net position">
+        <Row label="Target net balance">
           <Money value={targetNet} onChange={setTargetNet} />
         </Row>
         <Row label="Target date (end of summer)">
@@ -64,7 +64,7 @@ export default function SettingsPanel({ open, onClose }) {
               checked={overrideStart}
               onChange={(e) => setOverrideStart(e.target.checked)}
             />
-            Manually set starting net position
+            Manually set starting net balance
           </label>
           <p className="mt-1 text-xs text-slate-400">
             Auto-computed from imported data: <span className="text-slate-200">{formatMoney(auto)}</span>

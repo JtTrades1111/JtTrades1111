@@ -1,7 +1,7 @@
 # Summer Budget Dashboard
 
 A local, single-page React app that tracks your summer spending against an
-**end-of-summer net position target**. No backend, no database, no external API
+**end-of-summer net balance target**. No backend, no database, no external API
 calls — all data lives in the browser, with manual JSON export/import as your
 save/restore mechanism.
 
@@ -29,30 +29,31 @@ Fastest path: click **Import data** in the top bar and pick
 
 ---
 
-## The core idea: NET POSITION, not raw balance
+## The core idea: NET BALANCE, not raw balance
 
-The goal is a **target net position** by a **target date**:
+The goal is a **target net balance** by a **target date**:
 
 ```
-net position = cash in USAA accounts
+net balance = manually-entered cash balances (e.g. USAA checking)
              + manually-entered investments
+             + each account's carried-in opening balance
              − Discover card balance owed
 ```
 
 A checking balance that grows because your card balance grew is **not**
-progress. Every goal/pacing number in the app is computed from net position.
+progress. Every goal/pacing number in the app is computed from net balance.
 
 ### How the net-position math works (the honest version)
 
 CSV exports are **lists of flows** (transactions), not absolute balance
-statements. So the app computes net position as a running total of each
-transaction's *effect on net position* plus your manual investment values:
+statements. So the app computes net balance as a running total of each
+transaction's *effect on net balance* plus your manual investment values:
 
 ```
 currentNet = Σ transaction.signedForNet + Σ investment.value
 ```
 
-`signedForNet` is the dollar effect each transaction has on your net position:
+`signedForNet` is the dollar effect each transaction has on your net balance:
 
 | Account type | Amount        | Effect on net | signedForNet |
 |--------------|---------------|---------------|--------------|
@@ -66,7 +67,7 @@ pays down the card (net +X) for a **net change of zero** — exactly right, sinc
 paying your card isn't spending or progress.
 
 The implicit baseline is zero (your net worth *before* any imported
-transaction). The goal line's left endpoint, **starting net position**, is
+transaction). The goal line's left endpoint, **starting net balance**, is
 auto-derived as your running net as of the tracking start date — but you can
 override it in **Settings** to anchor to your real starting net worth.
 
@@ -77,7 +78,7 @@ The goal engine (`src/lib/goal.js`) computes:
 - On-track / behind / ahead status with the dollar gap vs. the ideal pace line
 - **Safe to spend this week** = how far you sit above where the pace line will
   be one week from now (slack you can spend and still be on pace next week)
-- Projected end net position (linear extrapolation of your current pace)
+- Projected end net balance (linear extrapolation of your current pace)
 
 The pacing math is small and heavily commented — tweak it in `src/lib/goal.js`.
 
@@ -182,7 +183,7 @@ src/
     goal.js        net-position pacing math (well commented)
   store/
     StoreContext.jsx  useReducer data store (no localStorage)
-    selectors.js      derived data: net position, spending, goal stats, charts
+    selectors.js      derived data: net balance, spending, goal stats, charts
   components/         TopBar, KpiCards, GoalProgress, SpendingSection,
                       AccountsPanel, TransactionsTable, ImportModal,
                       SettingsPanel, Toast, EmptyState, Modal

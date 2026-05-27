@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/StoreContext.jsx';
-import { accountBalance, investmentsTotal } from '../store/selectors.js';
+import { accountBalance, cashTotal, investmentsTotal } from '../store/selectors.js';
 import { formatDate, formatMoney } from '../lib/format.js';
 
 export default function AccountsPanel() {
@@ -58,20 +58,38 @@ export default function AccountsPanel() {
         )}
       </div>
 
-      <Investments />
+      <ManualBalances
+        title="Cash & bank balances (manual)"
+        items={state.cashBalances}
+        total={cashTotal(state)}
+        placeholder="e.g. USAA checking"
+        actions={{ add: 'ADD_CASH', update: 'UPDATE_CASH', remove: 'DELETE_CASH' }}
+        accent="text-slate-100"
+      />
+
+      <ManualBalances
+        title="Investments (manual)"
+        items={state.investments}
+        total={investmentsTotal(state)}
+        placeholder="e.g. Brokerage, Roth IRA"
+        actions={{ add: 'ADD_INVESTMENT', update: 'UPDATE_INVESTMENT', remove: 'DELETE_INVESTMENT' }}
+        accent="text-emerald-400"
+      />
     </section>
   );
 }
 
-function Investments() {
-  const { state, dispatch } = useStore();
+// A list of manually-entered named dollar balances (cash accounts or
+// investments) that add to net balance. `actions` selects which reducer events
+// to dispatch so the same UI drives both lists.
+function ManualBalances({ title, items, total, placeholder, actions, accent }) {
+  const { dispatch } = useStore();
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
-  const total = investmentsTotal(state);
 
   const add = () => {
     if (!name.trim()) return;
-    dispatch({ type: 'ADD_INVESTMENT', payload: { name: name.trim(), value: parseFloat(value) || 0 } });
+    dispatch({ type: actions.add, payload: { name: name.trim(), value: parseFloat(value) || 0 } });
     setName('');
     setValue('');
   };
@@ -79,17 +97,17 @@ function Investments() {
   return (
     <div className="mt-5 border-t border-ink-600/60 pt-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-200">Investments (manual)</h3>
-        <span className="text-sm font-semibold text-emerald-400">{formatMoney(total)}</span>
+        <h3 className="text-sm font-semibold text-slate-200">{title}</h3>
+        <span className={`text-sm font-semibold ${accent}`}>{formatMoney(total)}</span>
       </div>
 
       <div className="space-y-2">
-        {state.investments.map((inv) => (
-          <div key={inv.id} className="flex items-center gap-2">
+        {items.map((item) => (
+          <div key={item.id} className="flex items-center gap-2">
             <input
               className="input flex-1"
-              value={inv.name}
-              onChange={(e) => dispatch({ type: 'UPDATE_INVESTMENT', payload: { id: inv.id, name: e.target.value } })}
+              value={item.name}
+              onChange={(e) => dispatch({ type: actions.update, payload: { id: item.id, name: e.target.value } })}
             />
             <div className="relative">
               <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500">$</span>
@@ -97,19 +115,16 @@ function Investments() {
                 type="number"
                 step="0.01"
                 className="input w-32 pl-6 text-right"
-                value={inv.value}
+                value={item.value}
                 onChange={(e) =>
-                  dispatch({
-                    type: 'UPDATE_INVESTMENT',
-                    payload: { id: inv.id, value: parseFloat(e.target.value) || 0 },
-                  })
+                  dispatch({ type: actions.update, payload: { id: item.id, value: parseFloat(e.target.value) || 0 } })
                 }
               />
             </div>
             <button
               className="px-2 text-slate-500 hover:text-red-400"
-              onClick={() => dispatch({ type: 'DELETE_INVESTMENT', payload: { id: inv.id } })}
-              aria-label="Delete investment"
+              onClick={() => dispatch({ type: actions.remove, payload: { id: item.id } })}
+              aria-label="Delete"
             >
               ✕
             </button>
@@ -120,7 +135,7 @@ function Investments() {
       <div className="mt-3 flex items-center gap-2">
         <input
           className="input flex-1"
-          placeholder="e.g. Brokerage, Roth IRA"
+          placeholder={placeholder}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && add()}

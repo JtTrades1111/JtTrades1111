@@ -10,7 +10,7 @@ export default function EmptyState({ onImport }) {
         <h2 className="text-xl font-semibold text-slate-100">Import your first statement</h2>
         <p className="mt-2 text-sm text-slate-400">
           Drop in a Discover statement PDF, or a transaction export (CSV) from Discover or USAA.
-          The dashboard tracks your <span className="text-slate-200">net position</span> — cash plus
+          The dashboard tracks your <span className="text-slate-200">net balance</span> — cash plus
           investments minus card balance — against your end-of-summer goal.
         </p>
         <button className="btn-primary mt-6" onClick={onImport}>

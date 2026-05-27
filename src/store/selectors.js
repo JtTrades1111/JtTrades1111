@@ -15,6 +15,16 @@ export function investmentsTotal(state) {
   return state.investments.reduce((s, i) => s + (Number(i.value) || 0), 0);
 }
 
+// Manually-entered cash/bank balances (assets), e.g. a USAA checking balance.
+export function cashTotal(state) {
+  return (state.cashBalances || []).reduce((s, c) => s + (Number(c.value) || 0), 0);
+}
+
+// Everything held as a flat baseline from the start: investments + manual cash.
+function manualAssets(state) {
+  return investmentsTotal(state) + cashTotal(state);
+}
+
 // Per-account current balance.
 //   asset: positive number = cash on hand
 //   liability: positive number = amount OWED
@@ -44,7 +54,7 @@ export function openingNet(state) {
 
 export function currentNet(state) {
   const flow = state.transactions.reduce((s, t) => s + t.signedForNet, 0);
-  return flow + investmentsTotal(state) + openingNet(state);
+  return flow + manualAssets(state) + openingNet(state);
 }
 
 // Total currently owed across all liability (credit card) accounts.
@@ -75,7 +85,7 @@ export function autoStartNet(state) {
   const flowToStart = state.transactions
     .filter((t) => t.date <= startDate)
     .reduce((s, t) => s + t.signedForNet, 0);
-  return flowToStart + investmentsTotal(state) + openingNet(state);
+  return flowToStart + manualAssets(state) + openingNet(state);
 }
 
 export function effectiveStartNet(state) {
@@ -164,7 +174,7 @@ export function netPositionSeries(state) {
   const startNet = effectiveStartNet(state);
   const { targetDate, targetNet } = state.settings;
   const totalDays = Math.max(daysBetween(startDate, targetDate), 1);
-  const invest = investmentsTotal(state);
+  const invest = manualAssets(state); // investments + manual cash, held from the start
 
   // Sort transactions by date and build a cumulative net (flow + investments).
   const sorted = [...state.transactions].sort((a, b) => a.date.localeCompare(b.date));

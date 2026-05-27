@@ -20,6 +20,7 @@ export const initialState = {
   accounts: [], // { id, name, type, source, amountSign, lastImport }
   transactions: [], // { id, accountId, date, description, rawCategory, category, amount, signedForNet, categoryOverridden }
   investments: [], // { id, name, value }
+  cashBalances: [], // manual cash/bank balances (assets), { id, name, value }
   rules: [], // user rules: { id, pattern, category, source:'user' }
   columnMappings: {}, // signature -> mapping (for re-imports of unknown formats)
   settings: {
@@ -215,6 +216,28 @@ function reducer(state, action) {
 
     case 'DELETE_INVESTMENT':
       return { ...state, investments: state.investments.filter((i) => i.id !== action.payload.id) };
+
+    case 'ADD_CASH':
+      return {
+        ...state,
+        cashBalances: [
+          ...state.cashBalances,
+          { id: genId('cash'), name: action.payload.name, value: Number(action.payload.value) || 0 },
+        ],
+      };
+
+    case 'UPDATE_CASH':
+      return {
+        ...state,
+        cashBalances: state.cashBalances.map((c) =>
+          c.id === action.payload.id
+            ? { ...c, name: action.payload.name ?? c.name, value: action.payload.value ?? c.value }
+            : c
+        ),
+      };
+
+    case 'DELETE_CASH':
+      return { ...state, cashBalances: state.cashBalances.filter((c) => c.id !== action.payload.id) };
 
     case 'RENAME_ACCOUNT':
       return {
