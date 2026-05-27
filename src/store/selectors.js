@@ -18,20 +18,33 @@ export function investmentsTotal(state) {
 // Per-account current balance.
 //   asset: positive number = cash on hand
 //   liability: positive number = amount OWED
+// `openingBalance` is the balance carried in before the imported flows (e.g. a
+// credit card's Previous Balance), so the result reproduces the statement's
+// New Balance.
 export function accountBalance(state, accountId) {
   const acct = state.accounts.find((a) => a.id === accountId);
   if (!acct) return 0;
   const txs = state.transactions.filter((t) => t.accountId === accountId);
+  const opening = Number(acct.openingBalance) || 0;
   if (acct.type === 'liability') {
-    // signedForNet is negative for charges; owed = -sum(signedForNet)
-    return -txs.reduce((s, t) => s + t.signedForNet, 0);
+    // signedForNet is negative for charges; owed = opening − sum(signedForNet)
+    return opening - txs.reduce((s, t) => s + t.signedForNet, 0);
   }
-  return txs.reduce((s, t) => s + t.signedForNet, 0);
+  return opening + txs.reduce((s, t) => s + t.signedForNet, 0);
+}
+
+// Net contribution of every account's opening balance: assets add, liabilities
+// (debt carried in) subtract.
+export function openingNet(state) {
+  return state.accounts.reduce((s, a) => {
+    const ob = Number(a.openingBalance) || 0;
+    return s + (a.type === 'liability' ? -ob : ob);
+  }, 0);
 }
 
 export function currentNet(state) {
   const flow = state.transactions.reduce((s, t) => s + t.signedForNet, 0);
-  return flow + investmentsTotal(state);
+  return flow + investmentsTotal(state) + openingNet(state);
 }
 
 // Total currently owed across all liability (credit card) accounts.
@@ -62,7 +75,7 @@ export function autoStartNet(state) {
   const flowToStart = state.transactions
     .filter((t) => t.date <= startDate)
     .reduce((s, t) => s + t.signedForNet, 0);
-  return flowToStart + investmentsTotal(state);
+  return flowToStart + investmentsTotal(state) + openingNet(state);
 }
 
 export function effectiveStartNet(state) {
@@ -163,7 +176,7 @@ export function netPositionSeries(state) {
   };
 
   // Seed at the start date.
-  let running = invest; // investments present from the start
+  let running = invest + openingNet(state); // investments + carried balances present from the start
   // Apply any flow dated on/before the start date into the seed.
   let idx = 0;
   while (idx < sorted.length && sorted[idx].date <= startDate) {

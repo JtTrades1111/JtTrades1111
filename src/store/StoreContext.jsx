@@ -81,6 +81,7 @@ function reducer(state, action) {
   switch (action.type) {
     case 'IMPORT': {
       const { accountName, accountType, source, amountSign, drafts, signature, mapping, errors } = action.payload;
+      const { openingBalance = null, openingBalanceDate = null } = action.payload;
 
       // Find or create the account (matched by name + source).
       let account = state.accounts.find((a) => a.name === accountName && a.source === source);
@@ -93,10 +94,26 @@ function reducer(state, action) {
           source,
           amountSign,
           lastImport: todayISO(),
+          // Balance carried into the earliest imported statement (e.g. a credit
+          // card's Previous Balance). Imported flows sum on top of this.
+          openingBalance: openingBalance ?? 0,
+          openingBalanceDate: openingBalanceDate ?? null,
         };
         accounts = [...accounts, account];
       } else {
-        accounts = accounts.map((a) => (a.id === account.id ? { ...a, lastImport: todayISO() } : a));
+        accounts = accounts.map((a) => {
+          if (a.id !== account.id) return a;
+          const next = { ...a, lastImport: todayISO() };
+          // Anchor to the EARLIEST statement's opening balance so multiple
+          // imports don't double-count the carried balance.
+          if (openingBalance != null && openingBalanceDate) {
+            if (!a.openingBalanceDate || openingBalanceDate < a.openingBalanceDate) {
+              next.openingBalance = openingBalance;
+              next.openingBalanceDate = openingBalanceDate;
+            }
+          }
+          return next;
+        });
       }
 
       const rules = effectiveRules(state.rules);

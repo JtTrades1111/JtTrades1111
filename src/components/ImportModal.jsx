@@ -43,7 +43,7 @@ export default function ImportModal({ open, onClose }) {
     if (!file) return;
     try {
       const pdf = isPdfFile(file);
-      const { headers, rows } = pdf
+      const { headers, rows, meta } = pdf
         ? await parseStatementPdf(file)
         : parseCsvText(await file.text());
       if (!rows.length) {
@@ -78,6 +78,9 @@ export default function ImportModal({ open, onClose }) {
             errors,
             signature,
             mapping,
+            // For statement PDFs, anchor the account to the real balance owed.
+            openingBalance: meta?.previousBalance ?? null,
+            openingBalanceDate: meta?.periodStart ?? null,
           },
         });
         close();

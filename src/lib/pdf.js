@@ -76,7 +76,19 @@ async function extractLines(file) {
 function parsePeriod(text) {
   const m = text.match(/(\d{2})\/(\d{2})\/(\d{4})\s*-\s*(\d{2})\/(\d{2})\/(\d{4})/);
   if (!m) return null;
-  return { startMonth: +m[1], startYear: +m[3], endYear: +m[6] };
+  return {
+    startMonth: +m[1],
+    startYear: +m[3],
+    endYear: +m[6],
+    startISO: `${m[3]}-${m[1]}-${m[2]}`,
+    endISO: `${m[6]}-${m[4]}-${m[5]}`,
+  };
+}
+
+// Pull a labeled dollar figure ("Previous Balance $768.17") out of the text.
+function matchAmount(text, re) {
+  const m = text.match(re);
+  return m ? parseFloat(m[1].replace(/,/g, '')) : null;
 }
 
 function pickYear(month, period) {
@@ -178,5 +190,19 @@ export async function parseStatementPdf(file) {
     );
   }
 
-  return { headers: ['Trans. Date', 'Description', 'Amount', 'Category'], rows };
+  // Statement balances anchor the account so it shows the real amount owed:
+  //   New Balance = Previous Balance + Purchases − Payments
+  // We store the Previous Balance as the account's opening balance (as of the
+  // statement's start date), so summing the imported flows on top reproduces
+  // the New Balance.
+  const text = lines.join('\n');
+  const period = parsePeriod(text);
+  const meta = {
+    previousBalance: matchAmount(text, /Previous Balance\s+\$?([\d,]+\.\d{2})/i),
+    newBalance: matchAmount(text, /New Balance:?\s*\$?([\d,]+\.\d{2})/i),
+    periodStart: period ? period.startISO : null,
+    periodEnd: period ? period.endISO : null,
+  };
+
+  return { headers: ['Trans. Date', 'Description', 'Amount', 'Category'], rows, meta };
 }

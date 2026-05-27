@@ -38,6 +38,12 @@ export default function AccountsPanel() {
               <div className={`mt-3 text-xl font-bold ${isLiab ? 'text-amber-400' : 'text-slate-100'}`}>
                 {isLiab ? `${formatMoney(bal)} owed` : formatMoney(bal)}
               </div>
+              {Number(a.openingBalance) ? (
+                <div className="mt-1 text-xs text-slate-500">
+                  Incl. {formatMoney(a.openingBalance)} balance carried in
+                  {a.openingBalanceDate ? ` (as of ${formatDate(a.openingBalanceDate)})` : ''}
+                </div>
+              ) : null}
               <div className="mt-1 text-xs text-slate-500">
                 Last import: {a.lastImport ? formatDate(a.lastImport) : '—'}
               </div>
