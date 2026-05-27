@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../store/StoreContext.jsx';
-import { cardBalanceOwed, currentNet, effectiveStartNet, goalStats } from '../store/selectors.js';
-import { formatDelta, formatMoney } from '../lib/format.js';
+import { cardBalanceOwed, cashTotal, currentNet, goalStats } from '../store/selectors.js';
+import { formatMoney } from '../lib/format.js';
 
 const STATUS = {
   'on-track': { label: 'On track', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
@@ -12,8 +12,6 @@ const STATUS = {
 export default function KpiCards() {
   const { state } = useStore();
   const net = currentNet(state);
-  const startNet = effectiveStartNet(state);
-  const delta = net - startNet;
   const owed = cardBalanceOwed(state);
   const g = goalStats(state);
   const status = STATUS[g.status];
@@ -24,8 +22,8 @@ export default function KpiCards() {
         <div className={`text-3xl font-bold ${net < 0 ? 'text-red-400' : 'text-slate-100'}`}>
           {formatMoney(net)}
         </div>
-        <div className={`mt-1 text-sm font-medium ${delta >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-          {formatDelta(delta)} <span className="text-slate-500">vs start</span>
+        <div className="mt-1 text-sm text-slate-500">
+          {cashLabel(state)}
         </div>
       </Kpi>
 
@@ -60,6 +58,14 @@ export default function KpiCards() {
       </Kpi>
     </div>
   );
+}
+
+// Subtitle for the Net Balance card. When cash is entered, show that it's
+// folded in; otherwise hint at what makes up net balance.
+function cashLabel(state) {
+  const cash = cashTotal(state);
+  if (cash > 0) return `incl. ${formatMoney(cash)} cash on hand`;
+  return 'cash + investments − card owed';
 }
 
 function Kpi({ label, children }) {
