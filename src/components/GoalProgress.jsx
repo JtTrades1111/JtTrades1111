@@ -85,8 +85,9 @@ export default function GoalProgress() {
               width={48}
             />
             <Tooltip
-              contentStyle={{ background: '#0f1525', border: '1px solid #2a3450', borderRadius: 12 }}
-              labelStyle={{ color: '#cbd5e1' }}
+              contentStyle={{ background: '#0f1525', border: '1px solid #2a3450', borderRadius: 12, color: '#e2e8f0' }}
+              itemStyle={{ color: '#e2e8f0' }}
+              labelStyle={{ color: '#94a3b8' }}
               formatter={(v, name) => [v == null ? '—' : formatMoney(v), name]}
               labelFormatter={(d) => formatDate(d)}
             />

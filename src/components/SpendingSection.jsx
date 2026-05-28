@@ -66,7 +66,9 @@ export default function SpendingSection({ month, months, onMonthChange }) {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ background: '#0f1525', border: '1px solid #2a3450', borderRadius: 12 }}
+                  contentStyle={{ background: '#0f1525', border: '1px solid #2a3450', borderRadius: 12, color: '#e2e8f0' }}
+                  itemStyle={{ color: '#e2e8f0' }}
+                  labelStyle={{ color: '#94a3b8' }}
                   formatter={(v, n) => [formatMoney(v), n]}
                 />
                 <Legend
@@ -91,7 +93,9 @@ export default function SpendingSection({ month, months, onMonthChange }) {
                 <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `$${Math.round(v)}`} width={52} />
                 <Tooltip
                   cursor={{ fill: '#1e2740' }}
-                  contentStyle={{ background: '#0f1525', border: '1px solid #2a3450', borderRadius: 12 }}
+                  contentStyle={{ background: '#0f1525', border: '1px solid #2a3450', borderRadius: 12, color: '#e2e8f0' }}
+                  itemStyle={{ color: '#e2e8f0' }}
+                  labelStyle={{ color: '#94a3b8' }}
                   formatter={(v) => [formatMoney(v), 'Spent']}
                 />
                 <Bar dataKey="value" fill="#818cf8" radius={[6, 6, 0, 0]} />
