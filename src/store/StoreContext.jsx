@@ -1,12 +1,23 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import { categorize, DEFAULT_RULES } from '../lib/categories.js';
 import { todayISO } from '../lib/format.js';
 
 // ---------------------------------------------------------------------------
-// Data store — kept entirely in React state (useReducer).
-// IMPORTANT: no localStorage / sessionStorage. Save/restore is done by the
-// Export/Import JSON buttons in the UI.
+// Data store — kept in React state, mirrored to localStorage on every change
+// so a browser refresh doesn't wipe your data. The Export/Import JSON buttons
+// still work as manual backup/restore, and nothing leaves your machine.
 // ---------------------------------------------------------------------------
+
+const STORAGE_KEY = 'sbd:state:v1';
+
+function loadFromStorage() {
+  try {
+    const raw = typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null; // private mode / corrupt JSON / quota — fall back to defaults
+  }
+}
 
 const StoreContext = createContext(null);
 
@@ -277,7 +288,28 @@ function reducer(state, action) {
 }
 
 export function StoreProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState, (init) => {
+    const saved = loadFromStorage();
+    if (!saved) return init;
+    // Merge defensively (same shape as LOAD_STATE) so older saves still load,
+    // and drop the import toast so it doesn't reappear on every refresh.
+    return {
+      ...init,
+      ...saved,
+      settings: { ...init.settings, ...(saved.settings || {}) },
+      ui: { lastImport: null },
+    };
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Quota exceeded or storage disabled — silently skip. Manual Export/Import
+      // remains the backup path.
+    }
+  }, [state]);
+
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 
