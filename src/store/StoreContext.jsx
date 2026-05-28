@@ -293,12 +293,19 @@ export function StoreProvider({ children }) {
     if (!saved) return init;
     // Merge defensively (same shape as LOAD_STATE) so older saves still load,
     // and drop the import toast so it doesn't reappear on every refresh.
-    return {
+    const merged = {
       ...init,
       ...saved,
       settings: { ...init.settings, ...(saved.settings || {}) },
       ui: { lastImport: null },
     };
+    // Re-apply current rules to non-overridden transactions so updates to
+    // DEFAULT_RULES (e.g. new Gambling category) propagate to existing data.
+    const eff = effectiveRules(merged.rules);
+    merged.transactions = (merged.transactions || []).map((t) =>
+      t.categoryOverridden ? t : { ...t, category: categorize(t.description, t.rawCategory, eff) }
+    );
+    return merged;
   });
 
   useEffect(() => {

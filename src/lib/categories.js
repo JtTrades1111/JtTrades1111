@@ -10,6 +10,7 @@ export const CATEGORIES = [
   'Utilities',
   'Shopping',
   'Entertainment',
+  'Gambling',
   'Health',
   'Transfers',
   'Income',
@@ -34,7 +35,13 @@ export const DEFAULT_RULES = [
   { id: 'd-transfer', label: 'transfers & card payments', test: /payment thank you|online payment|web pmt|autopay|directpay|transfer|xfer|zelle|venmo cashout|ach pmt|bill pay/i, category: 'Transfers' },
   { id: 'd-income', label: 'income / deposits', test: /payroll|direct dep|salary|dividend|interest paid|refund|reimburse|deposit/i, category: 'Income' },
 
-  { id: 'd-transport', label: 'rideshare & fuel', test: /uber|lyft|shell|chevron|exxon|bp |marathon gas|parking|metro|transit|toll|amtrak|delta air|united air|american air|southwest/i, category: 'Transport' },
+  // Food delivery first — must beat the broader rideshare rule so "UBER *EATS"
+  // doesn't get caught as Transport.
+  { id: 'd-food-delivery', label: 'food delivery', test: /uber\s*\*?\s*eats|ubereats|doordash|grubhub|postmates|seamless|caviar|instacart/i, category: 'Food & Dining' },
+  { id: 'd-gambling', label: 'gambling & prediction markets', test: /kalshi|polymarket|draftkings|fanduel|bovada|prizepicks|sportsbook|casino|betmgm|stake\.com/i, category: 'Gambling' },
+  { id: 'd-golf', label: 'golf & recreation', test: /golf|driving range|tee time|pro shop/i, category: 'Entertainment' },
+
+  { id: 'd-transport', label: 'rideshare & fuel', test: /uber|lyft|lime|shell|chevron|exxon|bp |marathon gas|parking|metro|transit|toll|amtrak|delta air|united air|american air|southwest/i, category: 'Transport' },
   { id: 'd-groceries', label: 'grocery stores', test: /trader joe|safeway|harris teeter|whole foods|kroger|aldi|publix|wegmans|costco|sam's club|giant food|food lion/i, category: 'Groceries' },
   { id: 'd-dining', label: 'restaurants & coffee', test: /starbucks|mcdonald|chipotle|doordash|grubhub|uber eats|restaurant|cafe|coffee|pizza|sushi|taco|grill|kitchen|diner|bar &|brewery/i, category: 'Food & Dining' },
   { id: 'd-utilities', label: 'utilities & telecom', test: /comcast|xfinity|verizon|at&t|t-mobile|electric|water util|gas company|pg&e|con ed|internet|sewer|utility/i, category: 'Utilities' },
@@ -108,6 +115,7 @@ export const CATEGORY_COLORS = {
   Utilities: '#eab308',
   Shopping: '#ec4899',
   Entertainment: '#14b8a6',
+  Gambling: '#d946ef',
   Health: '#ef4444',
   Transfers: '#64748b',
   Income: '#10b981',
