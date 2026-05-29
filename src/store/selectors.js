@@ -28,33 +28,63 @@ function manualAssets(state) {
 // Per-account current balance.
 //   asset: positive number = cash on hand
 //   liability: positive number = amount OWED
-// `openingBalance` is the balance carried in before the imported flows (e.g. a
-// credit card's Previous Balance), so the result reproduces the statement's
-// New Balance.
+// For SimpleFIN-synced accounts we trust the authoritative `syncedBalance`
+// directly. For statement-imported accounts we sum imported flows on top of
+// the `openingBalance` (e.g. a credit card's Previous Balance), so the result
+// reproduces the statement's New Balance.
 export function accountBalance(state, accountId) {
   const acct = state.accounts.find((a) => a.id === accountId);
   if (!acct) return 0;
+  if (acct.source === 'simplefin') {
+    return Number(acct.syncedBalance) || 0;
+  }
   const txs = state.transactions.filter((t) => t.accountId === accountId);
   const opening = Number(acct.openingBalance) || 0;
   if (acct.type === 'liability') {
-    // signedForNet is negative for charges; owed = opening − sum(signedForNet)
     return opening - txs.reduce((s, t) => s + t.signedForNet, 0);
   }
   return opening + txs.reduce((s, t) => s + t.signedForNet, 0);
 }
 
-// Net contribution of every account's opening balance: assets add, liabilities
-// (debt carried in) subtract.
-export function openingNet(state) {
+// Sum each account's contribution to net balance: cash for assets, negative
+// for the amount owed on liabilities. Handles both synced and statement
+// accounts via accountBalance().
+export function accountsNet(state) {
   return state.accounts.reduce((s, a) => {
-    const ob = Number(a.openingBalance) || 0;
-    return s + (a.type === 'liability' ? -ob : ob);
+    const bal = accountBalance(state, a.id);
+    return s + (a.type === 'liability' ? -bal : bal);
   }, 0);
 }
 
+// Constant baseline from statement accounts' opening balances (carried-in
+// debt or cash before any imported transactions).
+export function openingNet(state) {
+  return state.accounts
+    .filter((a) => a.source !== 'simplefin')
+    .reduce((s, a) => {
+      const ob = Number(a.openingBalance) || 0;
+      return s + (a.type === 'liability' ? -ob : ob);
+    }, 0);
+}
+
+// Constant baseline from SimpleFIN-synced accounts (we have today's balance,
+// not historical snapshots, so it's treated as flat across the goal window).
+export function syncedNet(state) {
+  return state.accounts
+    .filter((a) => a.source === 'simplefin')
+    .reduce((s, a) => {
+      const bal = Number(a.syncedBalance) || 0;
+      return s + (a.type === 'liability' ? -bal : bal);
+    }, 0);
+}
+
+function isSyncedTx(state, t) {
+  const a = state.accounts.find((x) => x.id === t.accountId);
+  return a && a.source === 'simplefin';
+}
+
 export function currentNet(state) {
-  const flow = state.transactions.reduce((s, t) => s + t.signedForNet, 0);
-  return flow + manualAssets(state) + openingNet(state);
+  return accountsNet(state) + manualAssets(state);
 }
 
 // Total currently owed across all liability (credit card) accounts.
@@ -81,11 +111,14 @@ export function effectiveStartDate(state) {
 // Auto start net = running net as of the start date (everything dated after it
 // is excluded). Investments are treated as held from the start.
 export function autoStartNet(state) {
+  // Statement-account flows up to the start date sum on top of their opening
+  // balances. SimpleFIN-synced accounts contribute their (constant) current
+  // balance directly, since we don't have historical snapshots.
   const startDate = effectiveStartDate(state);
-  const flowToStart = state.transactions
-    .filter((t) => t.date <= startDate)
+  const statementFlowToStart = state.transactions
+    .filter((t) => t.date <= startDate && !isSyncedTx(state, t))
     .reduce((s, t) => s + t.signedForNet, 0);
-  return flowToStart + manualAssets(state) + openingNet(state);
+  return statementFlowToStart + manualAssets(state) + openingNet(state) + syncedNet(state);
 }
 
 export function effectiveStartNet(state) {
@@ -176,8 +209,11 @@ export function netPositionSeries(state) {
   const totalDays = Math.max(daysBetween(startDate, targetDate), 1);
   const invest = manualAssets(state); // investments + manual cash, held from the start
 
-  // Sort transactions by date and build a cumulative net (flow + investments).
-  const sorted = [...state.transactions].sort((a, b) => a.date.localeCompare(b.date));
+  // Only statement-account flows evolve the line. SimpleFIN-synced accounts
+  // contribute a constant baseline (we don't have historical snapshots).
+  const sorted = state.transactions
+    .filter((t) => !isSyncedTx(state, t))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   const points = [];
   const idealFor = (dateISO) => {
@@ -186,7 +222,7 @@ export function netPositionSeries(state) {
   };
 
   // Seed at the start date.
-  let running = invest + openingNet(state); // investments + carried balances present from the start
+  let running = invest + openingNet(state) + syncedNet(state);
   // Apply any flow dated on/before the start date into the seed.
   let idx = 0;
   while (idx < sorted.length && sorted[idx].date <= startDate) {

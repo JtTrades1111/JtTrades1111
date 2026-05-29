@@ -279,6 +279,38 @@ function reducer(state, action) {
       };
     }
 
+    case 'LOAD_SYNC': {
+      // Merge a snapshot from public/sync.json (written by tools/sync.mjs).
+      // For each account from SimpleFIN: upsert, refreshing the live balance
+      // each time. For each transaction: insert by stable sf_ id (skip dupes).
+      const { lastSync, accounts: syncedAccounts, transactions: syncedTx } = action.payload || {};
+      if (state.ui.lastSyncSeen === lastSync) return state; // already merged
+
+      const byId = new Map(state.accounts.map((a) => [a.id, a]));
+      for (const a of syncedAccounts || []) {
+        const existing = byId.get(a.id);
+        byId.set(a.id, existing ? { ...existing, ...a, name: existing.name || a.name } : a);
+      }
+      const accounts = Array.from(byId.values());
+
+      const have = new Set(state.transactions.map((t) => t.id));
+      const eff = effectiveRules(state.rules);
+      const fresh = (syncedTx || [])
+        .filter((t) => !have.has(t.id))
+        .map((t) => ({
+          ...t,
+          category: categorize(t.description, t.rawCategory, eff),
+          categoryOverridden: false,
+        }));
+
+      return {
+        ...state,
+        accounts,
+        transactions: [...state.transactions, ...fresh],
+        ui: { ...state.ui, lastSyncSeen: lastSync },
+      };
+    }
+
     case 'RESET':
       return { ...initialState, settings: { ...initialState.settings } };
 
@@ -307,6 +339,18 @@ export function StoreProvider({ children }) {
     );
     return merged;
   });
+
+  // Auto-load anything tools/sync.mjs has written to public/sync.json. The
+  // reducer skips work if the snapshot's lastSync matches what we've already
+  // merged, so this is safe to run on every mount.
+  useEffect(() => {
+    fetch('/sync.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((sync) => {
+        if (sync && sync.lastSync) dispatch({ type: 'LOAD_SYNC', payload: sync });
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     try {
