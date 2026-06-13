@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "sync": "node tools/sync.mjs"
+    "sync": "node tools/sync.mjs",
+    "schedule": "bash tools/install-schedule.sh",
+    "unschedule": "bash tools/uninstall-schedule.sh"
   },
   "dependencies": {
     "papaparse": "^5.4.1",

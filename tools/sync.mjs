@@ -53,6 +53,27 @@ function saveEnvVar(key, value) {
   fs.writeFileSync(ENV_PATH, lines.join('\n') + '\n', { mode: 0o600 });
 }
 
+// ---- interactive prompt for first-time setup ------------------------------
+
+import readline from 'node:readline';
+
+function promptForToken() {
+  console.log('\nFirst-time setup. Paste your SimpleFIN setup token below and press Enter.');
+  console.log('(Find it in your SimpleFIN Bridge dashboard under "Setup Token".)\n');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    rl.question('Setup token: ', (answer) => {
+      rl.close();
+      const token = (answer || '').trim();
+      if (!token) {
+        console.error('No token entered. Aborting.');
+        process.exit(1);
+      }
+      resolve(token);
+    });
+  });
+}
+
 // ---- SimpleFIN protocol ---------------------------------------------------
 
 // A SimpleFIN setup token is a base64-encoded URL you POST to once. The
@@ -159,6 +180,11 @@ async function main() {
   loadEnv();
 
   let accessUrl = process.env.SIMPLEFIN_ACCESS_URL;
+  if (!accessUrl && !process.env.SIMPLEFIN_SETUP_TOKEN && process.stdin.isTTY) {
+    // First-time setup, no token saved yet — prompt for it interactively so
+    // the user never has to open a file editor.
+    process.env.SIMPLEFIN_SETUP_TOKEN = await promptForToken();
+  }
   if (!accessUrl && process.env.SIMPLEFIN_SETUP_TOKEN) {
     console.log('Claiming SimpleFIN setup token (one-time)…');
     accessUrl = await claimSetupToken(process.env.SIMPLEFIN_SETUP_TOKEN);
@@ -168,8 +194,8 @@ async function main() {
     console.log('Saved permanent SIMPLEFIN_ACCESS_URL to .env.');
   }
   if (!accessUrl) {
-    console.error('No SIMPLEFIN_ACCESS_URL or SIMPLEFIN_SETUP_TOKEN found in .env');
-    console.error('Copy .env.example to .env and paste your SimpleFIN setup token.');
+    console.error('No SIMPLEFIN_ACCESS_URL or SIMPLEFIN_SETUP_TOKEN found.');
+    console.error('Run `npm run sync` from a Terminal (not a cron) to set it up.');
     process.exit(1);
   }
 

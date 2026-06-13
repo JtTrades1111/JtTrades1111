@@ -6,3 +6,4 @@ dist
 .env
 .env.local
 public/sync.json
+.sync.log
