@@ -10,6 +10,7 @@ export const CATEGORIES = [
   'Utilities',
   'Shopping',
   'Entertainment',
+  'Subscriptions',
   'Gambling',
   'Health',
   'Transfers',
@@ -48,7 +49,10 @@ export const DEFAULT_RULES = [
   { id: 'd-housing', label: 'rent & housing', test: /rent|landlord|apartment|property mgmt|mortgage|hoa /i, category: 'Rent/Housing' },
   { id: 'd-health', label: 'health & pharmacy', test: /cvs|walgreens|rite aid|pharmacy|doctor|dental|clinic|hospital|fitness|gym|planet fit|urgent care|med ctr|medical|optometrist|vision center|orthodonti/i, category: 'Health' },
   { id: 'd-travel', label: 'travel & lodging', test: /airbnb|vrbo|marriott|hilton|hyatt|sheraton|holiday inn|hampton inn|comfort inn|expedia|booking\.com|kayak|priceline|hotwire|hotel|motel|delta|united\b|american airlines|southwest|jetblue|frontier|spirit|avis|hertz|enterprise|budget rent|alamo|national car/i, category: 'Entertainment' },
-  { id: 'd-entertainment', label: 'entertainment & subscriptions', test: /netflix|spotify|hulu|disney\+|hbo|max |steam|playstation|xbox|cinema|amc |movie|concert|ticketmaster|patreon|nytimes|wsj|washington post|claude\.ai|anthropic|openai|chatgpt|github|gitlab|dropbox|icloud|onedrive|notion|twitch|paramount|peacock|apple tv|amazon prime|kindle|audible|substack/i, category: 'Entertainment' },
+  // Recurring digital services — streaming, software, news, cloud storage.
+  { id: 'd-subscriptions', label: 'digital subscriptions', test: /claude\.ai|anthropic|openai|chatgpt|github|gitlab|notion|dropbox|icloud|onedrive|google one|netflix|spotify|hulu|disney\+|hbo|max |paramount|peacock|apple tv|apple\.com\/bill|amazon prime|kindle unlimited|audible|nytimes|wsj|washington post|substack|patreon|youtube premium|adobe|microsoft 365|figma/i, category: 'Subscriptions' },
+  // One-off entertainment — movies, games, events.
+  { id: 'd-entertainment', label: 'movies, games & events', test: /steam|playstation|xbox|nintendo|cinema|amc |movie|concert|ticketmaster|stubhub|eventbrite|twitch/i, category: 'Entertainment' },
   { id: 'd-shopping', label: 'retail & online shopping', test: /amazon|target|walmart|best buy|ebay|etsy|nike|adidas|apple store|h&m|zara|ikea|home depot|lowe's|dollar general|dollar tree|family dollar|five below|marshalls|tj ?maxx|ross |kohl|macy|nordstrom|jcpenney|sephora|ulta|bed bath|michaels|hobby lobby|petco|petsmart|cvs\/pharmacy|tobacco|smoke shop|vape|abc store|wine|spirits|liquor/i, category: 'Shopping' },
 ];
 
@@ -116,6 +120,7 @@ export const CATEGORY_COLORS = {
   Utilities: '#eab308',
   Shopping: '#ec4899',
   Entertainment: '#14b8a6',
+  Subscriptions: '#0ea5e9',
   Gambling: '#d946ef',
   Health: '#ef4444',
   Transfers: '#64748b',
