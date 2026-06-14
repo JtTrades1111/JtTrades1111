@@ -14,7 +14,26 @@ import {
 import { useStore } from '../store/StoreContext.jsx';
 import { spendingByCategory, spendingByWeek, totalSpending } from '../store/selectors.js';
 import { CATEGORY_COLORS } from '../lib/categories.js';
-import { formatMoney } from '../lib/format.js';
+import { formatMoney, parseISODate } from '../lib/format.js';
+
+// "Jun 8" — tick label for the X axis on the weekly bar chart.
+function formatWeekShort(iso) {
+  const d = parseISODate(iso);
+  return d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : iso;
+}
+
+// "Jun 8 – 14" — tooltip label showing the whole week range.
+function formatWeekRange(iso) {
+  const start = parseISODate(iso);
+  if (!start) return iso;
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const sM = start.toLocaleDateString('en-US', { month: 'short' });
+  const eM = end.toLocaleDateString('en-US', { month: 'short' });
+  return sM === eM
+    ? `${sM} ${start.getDate()} – ${end.getDate()}`
+    : `${sM} ${start.getDate()} – ${eM} ${end.getDate()}`;
+}
 
 export default function SpendingSection({ month, months, onMonthChange }) {
   const { state } = useStore();
@@ -85,8 +104,8 @@ export default function SpendingSection({ month, months, onMonthChange }) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={byWeek} margin={{ top: 10, right: 8, bottom: 0, left: 8 }}>
                 <XAxis
-                  dataKey="week"
-                  tickFormatter={(w) => w.replace(/^\d{4}-/, '')}
+                  dataKey="firstDate"
+                  tickFormatter={formatWeekShort}
                   stroke="#64748b"
                   fontSize={11}
                 />
@@ -96,6 +115,7 @@ export default function SpendingSection({ month, months, onMonthChange }) {
                   contentStyle={{ background: '#0f1525', border: '1px solid #2a3450', borderRadius: 12, color: '#e2e8f0' }}
                   itemStyle={{ color: '#e2e8f0' }}
                   labelStyle={{ color: '#94a3b8' }}
+                  labelFormatter={formatWeekRange}
                   formatter={(v) => [formatMoney(v), 'Spent']}
                 />
                 <Bar dataKey="value" fill="#818cf8" radius={[6, 6, 0, 0]} />
