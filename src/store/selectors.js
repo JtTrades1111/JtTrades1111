@@ -159,12 +159,22 @@ export function spendAmount(t) {
   return t.signedForNet < 0 ? -t.signedForNet : 0;
 }
 
+// Asset-account transactions (USAA checking, savings, etc.) are excluded from
+// spending analytics — those movements are mostly transfers, card payments,
+// and Zelle that net out, not actual purchases. Only liability (credit card)
+// transactions count as spending.
+function isSpendableTx(state, t) {
+  const acct = state.accounts.find((a) => a.id === t.accountId);
+  return !acct || acct.type !== 'asset';
+}
+
 // Spending grouped by category for a given month (YYYY-MM). Excludes
-// transfers/payments and income.
+// transfers/payments, income, and any asset-account activity.
 export function spendingByCategory(state, month) {
   const totals = {};
   for (const t of state.transactions) {
     if (month && monthKey(t.date) !== month) continue;
+    if (!isSpendableTx(state, t)) continue;
     const amt = spendAmount(t);
     if (amt <= 0) continue;
     totals[t.category] = (totals[t.category] || 0) + amt;
@@ -179,6 +189,7 @@ export function spendingByWeek(state, month) {
   const totals = {};
   for (const t of state.transactions) {
     if (month && monthKey(t.date) !== month) continue;
+    if (!isSpendableTx(state, t)) continue;
     const amt = spendAmount(t);
     if (amt <= 0) continue;
     const wk = isoWeekKey(t.date);
@@ -190,7 +201,10 @@ export function spendingByWeek(state, month) {
 }
 
 export function totalSpending(state, month) {
-  return state.transactions.reduce((s, t) => (monthKey(t.date) === month ? s + spendAmount(t) : s), 0);
+  return state.transactions.reduce(
+    (s, t) => (monthKey(t.date) === month && isSpendableTx(state, t) ? s + spendAmount(t) : s),
+    0
+  );
 }
 
 // List of available months present in the data, newest first.
