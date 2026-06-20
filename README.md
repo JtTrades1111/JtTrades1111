@@ -1,151 +1,190 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Community Course</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            color: #333;
-            line-height: 1.6;
-        }
-        header {
-            background: #f4f4f4;
-            padding: 1rem 0;
-            text-align: center;
-        }
-        nav {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            background: #ddd;
-            padding: 0.5rem 0;
-        }
-        nav a {
-            text-decoration: none;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-        .hero {
-            text-align: center;
-            padding: 2rem 0;
-            background: #eaeaea;
-        }
-        .hero h1 {
-            margin: 0;
-        }
-        .section {
-            padding: 2rem 0;
-        }
-        .course-details, .testimonials {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .card {
-            flex: 1;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 1rem;
-        }
-        footer {
-            text-align: center;
-            padding: 1rem;
-            background: #f4f4f4;
-            margin-top: 2rem;
-        }
-        .btn {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background: #333;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 1rem;
-        }
-        .btn:hover {
-            background: #555;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Welcome to Our Trading Community</h1>
-        <p>Master trading patterns and strategies with our $10 course</p>
-    </header>
-    <nav>
-        <a href="#home">Home</a>
-        <a href="#about">About</a>
-        <a href="#course">Course Details</a>
-        <a href="#testimonials">Testimonials</a>
-        <a href="#contact">Contact</a>
-    </nav>
-    
-    <div class="container">
-        <section id="home" class="hero">
-            <h1>Transform Your Trading Today</h1>
-            <p>Join a thriving community of traders and learn actionable strategies that work.</p>
-            <a href="#course" class="btn">Learn More</a>
-        </section>
+# Summer Budget Dashboard
 
-        <section id="about" class="section">
-            <h2>About Us</h2>
-            <p>We are a community of passionate traders dedicated to mastering the stock market. Our $10 course offers everything you need to start your trading journey with confidence.</p>
-        </section>
+A local, single-page React app that tracks your summer spending against an
+**end-of-summer net balance target**. No backend, no database, no external API
+calls — all data lives in the browser, with manual JSON export/import as your
+save/restore mechanism.
 
-        <section id="course" class="section">
-            <h2>Course Details</h2>
-            <div class="course-details">
-                <div class="card">
-                    <h3>What You'll Learn</h3>
-                    <ul>
-                        <li>Identifying profitable patterns</li>
-                        <li>Risk management strategies</li>
-                        <li>Portfolio building tips</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3>Member Portfolios</h3>
-                    <p>See what our members have achieved:</p>
-                    <div style="height: 150px; background: #f4f4f4; text-align: center; line-height: 150px;">Add your own portfolio images here</div>
-                </div>
-            </div>
-            <a href="#contact" class="btn">Get the Course Now</a>
-        </section>
+You import transactions from CSV files you download from **Discover** (credit
+card) and **USAA** (checking/savings).
 
-        <section id="testimonials" class="section">
-            <h2>What Our Members Say</h2>
-            <div class="testimonials">
-                <div class="card">
-                    <p>"This course changed my trading game! Highly recommend to beginners." - Alex J.</p>
-                </div>
-                <div class="card">
-                    <p>"The strategies are simple yet powerful. Worth every penny!" - Jamie T.</p>
-                </div>
-            </div>
-        </section>
+## Run it
 
-        <section id="contact" class="section">
-            <h2>Contact Us</h2>
-            <p>Have questions or ready to join? Reach out to us!</p>
-            <p>Email: support@tradingcommunity.com</p>
-            <p>Follow us: 
-                <a href="#">TikTok</a> | 
-                <a href="#">Instagram</a>
-            </p>
-        </section>
-    </div>
+```bash
+npm install
+npm run dev
+```
 
-    <footer>
-        <p>&copy; 2024 Trading Community. All rights reserved.</p>
-    </footer>
-</body>
-</html>
+Then open the URL Vite prints (usually http://localhost:5173).
+
+Stack: React + Vite, Tailwind CSS, Recharts, PapaParse.
+
+### Try it with sample data
+
+The `samples/` folder has fictional Discover/USAA CSVs and a ready-made export.
+Fastest path: click **Import data** in the top bar and pick
+`samples/sample-data.json`. Or click **Import CSV** and load
+`samples/discover.csv` and `samples/usaa.csv` to exercise the importer. See
+`samples/README.md` for details.
+
+---
+
+## The core idea: NET BALANCE, not raw balance
+
+The goal is a **target net balance** by a **target date**:
+
+```
+net balance = manually-entered cash balances (e.g. USAA checking)
+             + manually-entered investments
+             + each account's carried-in opening balance
+             − Discover card balance owed
+```
+
+A checking balance that grows because your card balance grew is **not**
+progress. Every goal/pacing number in the app is computed from net balance.
+
+### How the net-position math works (the honest version)
+
+CSV exports are **lists of flows** (transactions), not absolute balance
+statements. So the app computes net balance as a running total of each
+transaction's *effect on net balance* plus your manual investment values:
+
+```
+currentNet = Σ transaction.signedForNet + Σ investment.value
+```
+
+`signedForNet` is the dollar effect each transaction has on your net balance:
+
+| Account type | Amount        | Effect on net | signedForNet |
+|--------------|---------------|---------------|--------------|
+| Asset (USAA) | +deposit      | net goes up   | `+amount`    |
+| Asset (USAA) | −spend        | net goes down | `+amount` (already negative) |
+| Liability (Discover) | +purchase | net goes down | `−amount` |
+| Liability (Discover) | −payment  | net goes up   | `−amount` (already negative) |
+
+This means a **card payment** moves money from your asset account (net −X) and
+pays down the card (net +X) for a **net change of zero** — exactly right, since
+paying your card isn't spending or progress.
+
+The implicit baseline is zero (your net worth *before* any imported
+transaction). The goal line's left endpoint, **starting net balance**, is
+auto-derived as your running net as of the tracking start date — but you can
+override it in **Settings** to anchor to your real starting net worth.
+
+The goal engine (`src/lib/goal.js`) computes:
+
+- Required savings pace (per week / per month) to hit the target from today
+- Actual pace so far (net change ÷ days elapsed)
+- On-track / behind / ahead status with the dollar gap vs. the ideal pace line
+- **Safe to spend this week** = how far you sit above where the pace line will
+  be one week from now (slack you can spend and still be on pace next week)
+- Projected end net balance (linear extrapolation of your current pace)
+
+The pacing math is small and heavily commented — tweak it in `src/lib/goal.js`.
+
+### Long-term investment goal (compounding)
+
+Alongside the short-term summer goal, there's a separate **Investment Goal**
+section for a multi-year wealth target (e.g. $200,000). Unlike the summer goal
+(a straight line), this one models **compounding** — money already invested and
+future monthly contributions both earn returns. You set a target amount, a
+target date, an expected annual return (default 7%), and a planned monthly
+contribution; the app shows:
+
+- Your current net worth and how much of it is invested
+- Projected value at the target date (with growth)
+- Whether you're on track, and the **monthly contribution needed** to hit the target
+- A projection chart: balance-with-growth vs. contributions-only vs. target
+
+The future-value math lives in `src/lib/investment.js` (standard
+future-value-of-an-annuity formula, commented).
+
+---
+
+## Exporting CSVs from your banks
+
+### Discover (credit card)
+1. Log in at discover.com → **Activity & Statements**.
+2. Choose a date range and click **Download** → **Spreadsheet (.csv)**.
+3. The file has columns: `Trans. Date, Post Date, Description, Amount, Category`.
+   - Positive `Amount` = purchases (money you owe); negative = payments/credits.
+
+**Or just drop in the monthly statement PDF.** Discover statement PDFs are
+parsed directly — the importer reconstructs each transaction (date, merchant,
+Discover category, amount), infers the year from the statement period, and
+treats it exactly like the CSV. CSV is still the more robust path if Discover
+ever changes their statement layout. (PDF parsing lives in `src/lib/pdf.js` and
+only supports Discover statements; other banks should use their CSV export.)
+
+### USAA (checking / savings)
+1. Log in at usaa.com → select the account → **Export Transactions**.
+2. Choose **CSV** and a date range, download.
+3. Modern exports have: `Date, Description, Original Description, Category, Amount, Status`.
+   - Negative `Amount` = money out; positive = money in.
+
+> USAA has shipped several CSV formats over the years. If your file doesn't
+> match, the app shows a **column-mapping screen** (below).
+
+### Where to drop them
+Click **Import statement** in the top bar (or drag the file onto the drop zone).
+Discover statement PDFs and Discover/USAA CSV files are detected automatically. Re-importing the same file
+is safe — duplicates (same account + date + description + amount) are skipped
+and the count is reported.
+
+### Unknown formats — column mapping
+If headers don't match a known format, you get a mapping screen: assign each
+required field (date, description, amount, optional category) to a column,
+declare whether it's an **asset** or **liability** account, and pick the
+**Amount sign convention**. The mapping is remembered, so future imports of the
+same format are automatic.
+
+---
+
+## Categorization
+
+Issuer categories are normalized into a clean set: *Food & Dining, Groceries,
+Transport, Rent/Housing, Utilities, Shopping, Entertainment, Health, Transfers,
+Income, Other.*
+
+A **rules engine** (`src/lib/categories.js`) maps description text → category
+via regex/substring rules, with sensible defaults shipped
+(`/uber|lyft/ → Transport`, `/trader joe|safeway|harris teeter/ → Groceries`,
+etc.). To customize, edit `DEFAULT_RULES` at the top of that file.
+
+- Override any single transaction's category inline in the table (an ✎ marks
+  manual overrides; they survive rule changes).
+- Click **+ rule** on any row to add "always categorize merchant X as Y". New
+  rules re-categorize existing non-overridden transactions immediately.
+- **Transfers** and **card payments** are excluded from all spending totals —
+  they're money moving, not expenses.
+
+---
+
+## Persistence (important)
+
+This app does **not** use `localStorage` / `sessionStorage` (they break in some
+embedded contexts). State lives in React (`useReducer`). To save your work:
+
+- **Export data** → downloads the full state as a JSON file.
+- **Import data** → reloads a previously exported JSON file.
+
+That JSON file is your save game. Export before closing the tab.
+
+---
+
+## Project layout
+
+```
+src/
+  lib/
+    format.js      money/date formatting, week & month bucketing
+    categories.js  normalized categories + rules engine (edit defaults here)
+    csv.js         Discover/USAA detection, parsing, sign conventions
+    goal.js        net-position pacing math (well commented)
+  store/
+    StoreContext.jsx  useReducer data store (no localStorage)
+    selectors.js      derived data: net balance, spending, goal stats, charts
+  components/         TopBar, KpiCards, GoalProgress, SpendingSection,
+                      AccountsPanel, TransactionsTable, ImportModal,
+                      SettingsPanel, Toast, EmptyState, Modal
+```
