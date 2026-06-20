@@ -1,20 +1,14 @@
 import React from 'react';
 import { useStore } from '../store/StoreContext.jsx';
-import { cardBalanceOwed, cashTotal, currentNet, goalStats } from '../store/selectors.js';
+import { budgetRemaining, cardBalanceOwed, cashTotal, currentNet, goalStats } from '../store/selectors.js';
 import { formatMoney } from '../lib/format.js';
-
-const STATUS = {
-  'on-track': { label: 'On track', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
-  ahead: { label: 'Ahead', cls: 'bg-sky-500/15 text-sky-300 border-sky-500/30' },
-  behind: { label: 'Behind', cls: 'bg-red-500/15 text-red-300 border-red-500/30' },
-};
 
 export default function KpiCards() {
   const { state } = useStore();
   const net = currentNet(state);
   const owed = cardBalanceOwed(state);
   const g = goalStats(state);
-  const status = STATUS[g.status];
+  const b = budgetRemaining(state);
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -27,17 +21,12 @@ export default function KpiCards() {
         </div>
       </Kpi>
 
-      <Kpi label="Goal Status">
-        <div className="flex items-center gap-2">
-          <span className={`rounded-full border px-3 py-1 text-sm font-semibold ${status.cls}`}>
-            {status.label}
-          </span>
+      <Kpi label="Budget Remaining (this month)">
+        <div className={`text-3xl font-bold ${b.remaining < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+          {formatMoney(b.remaining)}
         </div>
-        <div className="mt-2 text-sm text-slate-400">
-          {g.gap >= 0 ? 'Ahead of pace by ' : 'Behind pace by '}
-          <span className={g.gap >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-            {formatMoney(Math.abs(g.gap))}
-          </span>
+        <div className="mt-1 text-sm text-slate-500">
+          {formatMoney(b.spent)} of {formatMoney(b.cap)} spent
         </div>
       </Kpi>
 

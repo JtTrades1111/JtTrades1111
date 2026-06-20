@@ -11,6 +11,7 @@ export default function SettingsPanel({ open, onClose }) {
   const startDateAuto = effectiveStartDate(state);
 
   const [targetNet, setTargetNet] = useState(settings.targetNet);
+  const [monthlyBudget, setMonthlyBudget] = useState(settings.monthlyBudget);
   const [targetDate, setTargetDate] = useState(settings.targetDate);
   const [startDate, setStartDate] = useState(settings.startDate || '');
   const [overrideStart, setOverrideStart] = useState(settings.startNet != null);
@@ -27,6 +28,7 @@ export default function SettingsPanel({ open, onClose }) {
       type: 'UPDATE_SETTINGS',
       payload: {
         targetNet: parseFloat(targetNet) || 0,
+        monthlyBudget: parseFloat(monthlyBudget) || 0,
         targetDate,
         startDate: startDate || null,
         startNet: overrideStart ? parseFloat(startNet) || 0 : null,
@@ -44,6 +46,9 @@ export default function SettingsPanel({ open, onClose }) {
       <div className="space-y-4">
         <Row label="Target net balance">
           <Money value={targetNet} onChange={setTargetNet} />
+        </Row>
+        <Row label="Monthly spending budget" hint="Your cap per calendar month. Powers the Budget Remaining card.">
+          <Money value={monthlyBudget} onChange={setMonthlyBudget} />
         </Row>
         <Row label="Target date (end of summer)">
           <input type="date" className="input w-full" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />

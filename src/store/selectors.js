@@ -207,6 +207,15 @@ export function totalSpending(state, month) {
   );
 }
 
+// Budget Remaining = the user's monthly cap minus what they've actually spent
+// on liability accounts this calendar month. Negative means over budget.
+export function budgetRemaining(state, today = todayISO()) {
+  const cap = Number(state.settings.monthlyBudget) || 0;
+  const month = monthKey(today);
+  const spent = totalSpending(state, month);
+  return { cap, spent, remaining: cap - spent, month };
+}
+
 // List of available months present in the data, newest first.
 export function availableMonths(state) {
   const set = new Set(state.transactions.map((t) => monthKey(t.date)).filter(Boolean));

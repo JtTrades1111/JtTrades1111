@@ -39,6 +39,7 @@ export const initialState = {
     targetNet: 5000,
     targetDate: defaultTargetDate(),
     startDate: null, // null => earliest transaction date
+    monthlyBudget: 1500, // user-set spending cap per calendar month
     // Long-term investment goal (compounding). Tracked against total net worth.
     investTarget: 200000,
     investTargetDate: defaultInvestDate(),
